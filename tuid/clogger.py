@@ -23,7 +23,7 @@ from mo_logs.exceptions import suppress_exception
 from mo_threads import Till, Thread, Lock, Queue, Signal
 from mo_threads.threads import ALL
 from mo_times.durations import DAY
-from pyLibrary.env import http,elasticsearch
+from pyLibrary.env import http, elasticsearch
 from pyLibrary.sql import sql_list, quote_set
 from tuid import sql
 from tuid.util import HG_URL
@@ -48,6 +48,17 @@ SIGNAL_MAINTENANCE_CSETS = int(
 UPDATE_VERY_OLD_FRONTIERS = False
 
 SINGLE_CLOGGER = None
+
+
+import time
+import logging as logging
+
+logging.basicConfig(
+    filename="/home/ajupazhamayil/TUID/service.log",
+    filemode="a",
+    format="%(name)s - %(message)s",
+)
+logging.getLogger().setLevel(logging.INFO)
 
 
 class Clogger:
@@ -211,8 +222,12 @@ class Clogger:
         self.csetlog.refresh()
 
         total = self.csetlog.search({"size": 0})
+        start_time = time.time()
         while not total.hits:
+
             total = self.csetlog.search({"size": 0})
+        logging.info("--- %.20f seconds init_Db---" % (time.time() - start_time))
+
         with suppress_exception:
             self.csetlog.add_alias()
 
@@ -316,7 +331,6 @@ class Clogger:
             temp.append((r._source.revnum, r._source.revision))
         return temp
 
-
     def check_for_maintenance(self):
         """
         Returns True if the maintenance worker should be run now,
@@ -386,14 +400,18 @@ class Clogger:
                 }
                 self.csetlog.add({"value": record})
                 self.csetlog.refresh()
+                start_time = time.time()
                 while not self._get_revnum_exists(revnum):
+
                     Till(seconds=0.001).wait()
+                logging.info(
+                    "--- %.20f seconds add_cset_entries---" % (time.time() - start_time)
+                )
 
         # Start a maintenance run if needed
         if self.check_for_maintenance():
             Log.note("Scheduling maintenance run on clogger.")
             self.maintenance_signal.go()
-
 
     def _fill_in_range(
         self, parent_cset, child_cset, timestamp=False, number_forward=True
@@ -512,9 +530,15 @@ class Clogger:
                 self.csetlog.refresh()
                 query = {"size": 0}
                 result = self.csetlog.search(query)
+                start_time = time.time()
                 while result.hits.total != 0:
+
                     Till(seconds=0.001).wait()
                     result = self.csetlog.search(query)
+                logging.info(
+                    "--- %.20f seconds initialize_to_range delete all---"
+                    % (time.time() - start_time)
+                )
 
             # since no auto addition possible
             query = self.min_max_dsl("max")
@@ -532,8 +556,13 @@ class Clogger:
             }
             self.csetlog.add({"value": record})
             self.csetlog.refresh()
+            start_time = time.time()
             while not self._get_revnum_exists(max_revnum):
+
                 Till(seconds=0.001).wait()
+            logging.info(
+                "--- %.20f seconds initialize_to_range add record---" % (time.time() - start_time)
+            )
 
             self._fill_in_range(old_rev, new_rev, timestamp=True, number_forward=False)
 
@@ -772,9 +801,15 @@ class Clogger:
                         self.tuid_service.annotations.refresh()
                         query = {"query": {"terms": {"revision": annrevs_to_del}}}
                         result = self.tuid_service.annotations.search(query)
+                        start_time = time.time()
                         while len(result.hits.hits) != 0:
+
                             Till(seconds=0.001).wait()
                             result = self.tuid_service.annotations.search(query)
+                        logging.info(
+                            "--- %.20f seconds csetLog_maintenance delete records---"
+                            % (time.time() - start_time)
+                        )
 
                     # Delete any overflowing entries
                     new_data2 = new_data1
@@ -829,14 +864,28 @@ class Clogger:
                                 self.csetlog.refresh()
                                 query = {"query": {"term": {"revnum": revnum}}}
                                 result = self.csetlog.search(query)
+                                start_time = time.time()
                                 while len(result.hits.hits) != 0:
+
                                     Till(seconds=0.001).wait()
                                     result = self.csetlog.search(query)
 
+                                logging.info(
+                                    "--- %.20f seconds csetLog_maintenance delete record for a revnum---"
+                                    % (time.time() - start_time)
+                                )
+
                             self.csetlog.add({"value": record})
                             self.csetlog.refresh()
+                            start_time = time.time()
                             while not self._get_revnum_exists(revnum):
+
                                 Till(seconds=0.001).wait()
+
+                            logging.info(
+                                "--- %.20f seconds csetLog_maintenance add record---"
+                                % (time.time() - start_time)
+                            )
 
                     if not deleted_data:
                         continue
@@ -930,9 +979,15 @@ class Clogger:
                         self.tuid_service.annotations.refresh()
                         query = {"query": {"terms": {"revision": csets_to_del}}}
                         result = self.tuid_service.annotations.search(query)
+                        start_time = time.time()
                         while len(result.hits.hits) != 0:
+
                             Till(seconds=0.001).wait()
                             result = self.tuid_service.annotations.search(query)
+                        logging.info(
+                            "--- %.20f seconds csetLog_deleter delete annotations---"
+                            % (time.time() - start_time)
+                        )
 
                         Log.note(
                             "Deleting {{num_entries}} csetLog entries...",
@@ -944,9 +999,16 @@ class Clogger:
                         self.csetlog.refresh()
                         query = {"query": {"terms": {"revision": csets_to_del}}}
                         result = self.csetlog.search(query)
+                        start_time = time.time()
                         while len(result.hits.hits) != 0:
+
                             Till(seconds=0.001).wait()
                             result = self.csetlog.search(query)
+
+                        logging.info(
+                            "--- %.20f seconds csetLog_deleter delete csetlog---"
+                            % (time.time() - start_time)
+                        )
 
             except Exception as e:
                 Log.warning(

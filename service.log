@@ -1,0 +1,384 @@
+Result of test_clogger.py
+-----------------------------------------------------------------------------------------------------
+
+root - --- 0.00000691413879394531 seconds initdb temporal---
+root - --- 0.00000715255737304688 seconds in initdb annotations ---
+root - --- 0.00000643730163574219 seconds init_Db---
+root - --- 0.00940155982971191406 seconds add_cset_entries---
+root - --- 0.00581979751586914062 seconds add_cset_entries---
+root - --- 0.00777435302734375000 seconds add_cset_entries---
+root - --- 0.00591158866882324219 seconds add_cset_entries---
+root - --- 0.00994491577148437500 seconds add_cset_entries---
+root - --- 0.00756287574768066406 seconds add_cset_entries---
+root - --- 0.00611948966979980469 seconds add_cset_entries---
+root - --- 0.00748801231384277344 seconds add_cset_entries---
+root - --- 0.00702786445617675781 seconds add_cset_entries---
+root - --- 0.00922894477844238281 seconds add_cset_entries---
+root - --- 0.00462198257446289062 seconds add_cset_entries---
+root - --- 0.00457620620727539062 seconds add_cset_entries---
+root - --- 0.00563955307006835938 seconds add_cset_entries---
+root - --- 0.01277804374694824219 seconds add_cset_entries---
+root - --- 0.00890755653381347656 seconds add_cset_entries---
+root - --- 0.01036691665649414062 seconds add_cset_entries---
+root - --- 0.00716066360473632812 seconds add_cset_entries---
+root - --- 0.00799989700317382812 seconds add_cset_entries---
+root - --- 0.00932979583740234375 seconds add_cset_entries---
+root - --- 0.00632143020629882812 seconds add_cset_entries---
+root - --- 0.00467538833618164062 seconds add_cset_entries---
+root - --- 0.00477099418640136719 seconds add_cset_entries---
+root - --- 0.00476121902465820312 seconds add_cset_entries---
+root - --- 0.01055240631103515625 seconds add_cset_entries---
+root - --- 0.00732731819152832031 seconds add_cset_entries---
+root - --- 0.00604581832885742188 seconds add_cset_entries---
+root - --- 0.00634622573852539062 seconds add_cset_entries---
+root - --- 0.00741887092590332031 seconds add_cset_entries---
+root - --- 0.00720858573913574219 seconds add_cset_entries---
+root - --- 0.00462293624877929688 seconds add_cset_entries---
+root - --- 0.00563406944274902344 seconds add_cset_entries---
+root - --- 0.00879454612731933594 seconds add_cset_entries---
+root - --- 0.00898671150207519531 seconds add_cset_entries---
+root - --- 0.00521254539489746094 seconds add_cset_entries---
+root - --- 0.00912547111511230469 seconds add_cset_entries---
+root - --- 0.00740146636962890625 seconds add_cset_entries---
+root - --- 0.00608181953430175781 seconds add_cset_entries---
+root - --- 0.01000094413757324219 seconds add_cset_entries---
+root - --- 0.00543260574340820312 seconds add_cset_entries---
+root - --- 0.00529909133911132812 seconds add_cset_entries---
+root - --- 0.00563311576843261719 seconds add_cset_entries---
+root - --- 0.00478768348693847656 seconds add_cset_entries---
+root - --- 0.00568795204162597656 seconds add_cset_entries---
+root - --- 0.00503420829772949219 seconds add_cset_entries---
+root - --- 0.00593328475952148438 seconds add_cset_entries---
+root - --- 0.00476908683776855469 seconds add_cset_entries---
+root - --- 0.00507593154907226562 seconds add_cset_entries---
+root - --- 0.00474905967712402344 seconds add_cset_entries---
+root - --- 0.00950789451599121094 seconds add_cset_entries---
+root - --- 0.00686836242675781250 seconds add_cset_entries---
+root - --- 0.00788426399230957031 seconds add_cset_entries---
+root - --- 0.00946450233459472656 seconds add_cset_entries---
+root - --- 0.00936841964721679688 seconds add_cset_entries---
+root - --- 0.00527429580688476562 seconds add_cset_entries---
+root - --- 0.00699281692504882812 seconds add_cset_entries---
+root - --- 0.00505900382995605469 seconds add_cset_entries---
+root - --- 0.00605845451354980469 seconds add_cset_entries---
+root - --- 0.00482439994812011719 seconds add_cset_entries---
+root - --- 0.00482225418090820312 seconds add_cset_entries---
+root - --- 0.00470423698425292969 seconds add_cset_entries---
+root - --- 0.00651550292968750000 seconds add_cset_entries---
+root - --- 0.00555706024169921875 seconds add_cset_entries---
+root - --- 0.00463891029357910156 seconds add_cset_entries---
+root - --- 0.00552725791931152344 seconds add_cset_entries---
+root - --- 0.00579190254211425781 seconds add_cset_entries---
+root - --- 0.00674080848693847656 seconds add_cset_entries---
+root - --- 0.00710749626159667969 seconds add_cset_entries---
+root - --- 0.00585293769836425781 seconds add_cset_entries---
+root - --- 0.00586771965026855469 seconds add_cset_entries---
+root - --- 0.00623869895935058594 seconds add_cset_entries---
+root - --- 0.00696682929992675781 seconds add_cset_entries---
+root - --- 0.00477719306945800781 seconds add_cset_entries---
+root - --- 0.02115392684936523438 seconds add_cset_entries---
+root - --- 0.00786399841308593750 seconds add_cset_entries---
+root - --- 0.00493407249450683594 seconds add_cset_entries---
+root - --- 0.00461506843566894531 seconds add_cset_entries---
+root - --- 0.00682759284973144531 seconds add_cset_entries---
+root - --- 0.00485730171203613281 seconds add_cset_entries---
+root - --- 0.02992486953735351562 seconds add_cset_entries---
+root - --- 0.00592422485351562500 seconds add_cset_entries---
+root - --- 0.00669932365417480469 seconds add_cset_entries---
+root - --- 0.00590538978576660156 seconds add_cset_entries---
+root - --- 0.00614643096923828125 seconds add_cset_entries---
+root - --- 0.00719523429870605469 seconds add_cset_entries---
+root - --- 0.00778388977050781250 seconds add_cset_entries---
+root - --- 0.00810194015502929688 seconds add_cset_entries---
+root - --- 0.00612235069274902344 seconds add_cset_entries---
+root - --- 0.00564861297607421875 seconds add_cset_entries---
+root - --- 0.00642037391662597656 seconds add_cset_entries---
+root - --- 0.00477027893066406250 seconds add_cset_entries---
+root - --- 0.00539684295654296875 seconds add_cset_entries---
+root - --- 0.00595164299011230469 seconds add_cset_entries---
+root - --- 0.00776052474975585938 seconds add_cset_entries---
+root - --- 0.00491547584533691406 seconds add_cset_entries---
+root - --- 0.00656700134277343750 seconds add_cset_entries---
+root - --- 0.00561881065368652344 seconds add_cset_entries---
+root - --- 0.00789308547973632812 seconds add_cset_entries---
+root - --- 0.00692391395568847656 seconds add_cset_entries---
+root - --- 0.00568556785583496094 seconds add_cset_entries---
+root - --- 0.00728034973144531250 seconds add_cset_entries---
+root - --- 0.00488018989562988281 seconds add_cset_entries---
+root - --- 0.00462269783020019531 seconds add_cset_entries---
+root - --- 0.00447678565979003906 seconds add_cset_entries---
+root - --- 0.00444412231445312500 seconds add_cset_entries---
+root - --- 0.00444436073303222656 seconds add_cset_entries---
+root - --- 0.00442123413085937500 seconds add_cset_entries---
+root - --- 0.00497627258300781250 seconds add_cset_entries---
+root - --- 0.00504636764526367188 seconds add_cset_entries---
+root - --- 0.00501298904418945312 seconds add_cset_entries---
+root - --- 0.01211643218994140625 seconds add_cset_entries---
+root - --- 0.00540494918823242188 seconds add_cset_entries---
+root - --- 0.00784063339233398438 seconds add_cset_entries---
+root - --- 0.00536990165710449219 seconds add_cset_entries---
+root - --- 0.00641179084777832031 seconds add_cset_entries---
+root - --- 0.00484585762023925781 seconds add_cset_entries---
+root - --- 0.00573921203613281250 seconds add_cset_entries---
+root - --- 0.00541424751281738281 seconds add_cset_entries---
+root - --- 0.00631356239318847656 seconds add_cset_entries---
+root - --- 0.00497055053710937500 seconds add_cset_entries---
+root - --- 0.02817368507385253906 seconds add_cset_entries---
+root - --- 0.00817251205444335938 seconds add_cset_entries---
+root - --- 0.00757694244384765625 seconds add_cset_entries---
+root - --- 0.00474739074707031250 seconds add_cset_entries---
+root - --- 0.01069235801696777344 seconds add_cset_entries---
+root - --- 0.01060605049133300781 seconds add_cset_entries---
+root - --- 0.00763487815856933594 seconds add_cset_entries---
+root - --- 0.00568866729736328125 seconds add_cset_entries---
+root - --- 0.00490999221801757812 seconds add_cset_entries---
+root - --- 0.00567197799682617188 seconds add_cset_entries---
+root - --- 0.00957250595092773438 seconds add_cset_entries---
+root - --- 0.00605034828186035156 seconds add_cset_entries---
+root - --- 0.00490021705627441406 seconds add_cset_entries---
+root - --- 0.00619554519653320312 seconds add_cset_entries---
+root - --- 0.00610399246215820312 seconds add_cset_entries---
+root - --- 0.00760531425476074219 seconds add_cset_entries---
+root - --- 0.00557804107666015625 seconds add_cset_entries---
+root - --- 0.00575470924377441406 seconds add_cset_entries---
+root - --- 0.00502896308898925781 seconds add_cset_entries---
+root - --- 0.00577259063720703125 seconds add_cset_entries---
+root - --- 0.00653195381164550781 seconds add_cset_entries---
+root - --- 0.00587248802185058594 seconds add_cset_entries---
+root - --- 0.00543522834777832031 seconds add_cset_entries---
+root - --- 0.00935459136962890625 seconds add_cset_entries---
+root - --- 0.00595426559448242188 seconds add_cset_entries---
+root - --- 0.00572061538696289062 seconds add_cset_entries---
+root - --- 0.00667643547058105469 seconds add_cset_entries---
+root - --- 0.01074218750000000000 seconds add_cset_entries---
+root - --- 0.00679874420166015625 seconds add_cset_entries---
+root - --- 0.00723433494567871094 seconds add_cset_entries---
+root - --- 0.00582623481750488281 seconds add_cset_entries---
+root - --- 0.00501275062561035156 seconds add_cset_entries---
+root - --- 0.00495457649230957031 seconds add_cset_entries---
+root - --- 0.00477504730224609375 seconds add_cset_entries---
+root - --- 0.00497031211853027344 seconds add_cset_entries---
+root - --- 0.00531148910522460938 seconds add_cset_entries---
+root - --- 0.00464463233947753906 seconds add_cset_entries---
+root - --- 0.01109242439270019531 seconds add_cset_entries---
+root - --- 0.00845289230346679688 seconds add_cset_entries---
+root - --- 0.00479555130004882812 seconds add_cset_entries---
+root - --- 0.00507998466491699219 seconds add_cset_entries---
+root - --- 0.00810170173645019531 seconds add_cset_entries---
+root - --- 0.00945377349853515625 seconds add_cset_entries---
+root - --- 0.00483441352844238281 seconds add_cset_entries---
+root - --- 0.00541710853576660156 seconds add_cset_entries---
+root - --- 0.01027584075927734375 seconds add_cset_entries---
+root - --- 0.00608682632446289062 seconds add_cset_entries---
+root - --- 0.00570392608642578125 seconds add_cset_entries---
+root - --- 0.00785541534423828125 seconds add_cset_entries---
+root - --- 0.00703573226928710938 seconds add_cset_entries---
+root - --- 0.00572180747985839844 seconds add_cset_entries---
+root - --- 0.00528502464294433594 seconds add_cset_entries---
+root - --- 0.00477933883666992188 seconds add_cset_entries---
+root - --- 0.00494503974914550781 seconds add_cset_entries---
+root - --- 0.00704097747802734375 seconds add_cset_entries---
+root - --- 0.03289222717285156250 seconds add_cset_entries---
+root - --- 0.01213812828063964844 seconds add_cset_entries---
+root - --- 0.00605154037475585938 seconds add_cset_entries---
+root - --- 0.00560355186462402344 seconds add_cset_entries---
+root - --- 0.00910544395446777344 seconds add_cset_entries---
+root - --- 0.00665616989135742188 seconds add_cset_entries---
+root - --- 0.00547456741333007812 seconds add_cset_entries---
+root - --- 0.00458550453186035156 seconds add_cset_entries---
+root - --- 0.00485825538635253906 seconds add_cset_entries---
+root - --- 0.00463628768920898438 seconds add_cset_entries---
+root - --- 0.00003290176391601562 seconds csetLog_maintenance delete records---
+root - --- 0.02975821495056152344 seconds csetLog_maintenance add record---
+root - --- 0.00899791717529296875 seconds csetLog_maintenance add record---
+root - --- 0.00777292251586914062 seconds csetLog_maintenance add record---
+root - --- 0.00475239753723144531 seconds csetLog_maintenance add record---
+root - --- 0.00526142120361328125 seconds csetLog_maintenance add record---
+root - --- 0.00470614433288574219 seconds csetLog_maintenance add record---
+root - --- 0.00522160530090332031 seconds csetLog_maintenance add record---
+root - --- 0.00487661361694335938 seconds csetLog_maintenance add record---
+root - --- 0.00861239433288574219 seconds csetLog_maintenance add record---
+root - --- 0.00550222396850585938 seconds csetLog_maintenance add record---
+root - --- 0.00469398498535156250 seconds csetLog_maintenance add record---
+root - --- 0.01096367835998535156 seconds csetLog_maintenance add record---
+root - --- 0.00646543502807617188 seconds csetLog_maintenance add record---
+root - --- 0.00819444656372070312 seconds csetLog_maintenance add record---
+root - --- 0.00635814666748046875 seconds csetLog_maintenance add record---
+root - --- 0.00591182708740234375 seconds csetLog_maintenance add record---
+root - --- 0.00562763214111328125 seconds csetLog_maintenance add record---
+root - --- 0.00790786743164062500 seconds csetLog_maintenance add record---
+root - --- 0.00816249847412109375 seconds csetLog_maintenance add record---
+root - --- 0.00489068031311035156 seconds csetLog_maintenance add record---
+root - --- 0.00788354873657226562 seconds csetLog_maintenance add record---
+root - --- 0.00445771217346191406 seconds csetLog_maintenance add record---
+
+
+Result of test_basic.py
+-----------------------------------------------------------------------------------------------------
+
+root - --- 0.00000953674316406250 seconds initdb temporal---
+root - --- 0.00001120567321777344 seconds in initdb annotations ---
+root - --- 0.00001358985900878906 seconds init_Db---
+root - --- 0.00574541091918945312 seconds insert_annotations---
+root - --- 0.00948929786682128906 seconds insert_annotations---
+root - --- 0.00834417343139648438 seconds insert_annotations---
+root - --- 0.00780534744262695312 seconds insert_annotations---
+root - --- 0.00846743583679199219 seconds insert_annotations---
+root - --- 0.00590538978576660156 seconds insert_annotations---
+root - --- 0.00554203987121582031 seconds insert_annotations---
+root - --- 0.00655746459960937500 seconds insert_annotations---
+root - --- 0.00784325599670410156 seconds insert_annotations---
+root - --- 0.00538372993469238281 seconds insert_annotations---
+root - --- 0.00511121749877929688 seconds insert_annotations---
+root - --- 0.00573444366455078125 seconds insert_annotations---
+root - --- 0.00000739097595214844 seconds initialize_to_range delete all---
+root - --- 0.00550436973571777344 seconds initialize_to_range add record---
+root - --- 0.00651526451110839844 seconds add_cset_entries---
+root - --- 0.01221132278442382812 seconds add_cset_entries---
+root - --- 0.02864360809326171875 seconds add_cset_entries---
+root - --- 0.00464892387390136719 seconds add_cset_entries---
+root - --- 0.00685095787048339844 seconds add_cset_entries---
+root - --- 0.00504350662231445312 seconds insert_annotations---
+root - --- 0.01180362701416015625 seconds insert_annotations---
+root - --- 0.00913643836975097656 seconds insert_annotations---
+root - --- 0.00626921653747558594 seconds insert_annotations---
+root - --- 0.00759220123291015625 seconds insert_annotations---
+root - --- 0.00599145889282226562 seconds insert_annotations---
+root - --- 0.00470685958862304688 seconds insert_annotations---
+root - --- 0.00604319572448730469 seconds insert_annotations---
+root - --- 0.00625658035278320312 seconds insert_annotations---
+root - --- 0.00508713722229003906 seconds insert_annotations---
+root - --- 0.00713872909545898438 seconds insert_annotations---
+root - --- 0.00463247299194335938 seconds insert_annotations---
+root - --- 0.00993847846984863281 seconds insert_annotations---
+root - --- 0.02865815162658691406 seconds insert_annotations---
+root - --- 0.00878071784973144531 seconds insert_annotations---
+root - --- 0.00916481018066406250 seconds insert_annotations---
+root - --- 0.00475502014160156250 seconds insert_annotations---
+root - --- 0.00716328620910644531 seconds insert_annotations---
+root - --- 0.00545525550842285156 seconds insert_annotations---
+root - --- 0.00580477714538574219 seconds insert_annotations---
+root - --- 0.00655746459960937500 seconds insert_annotations---
+root - --- 0.00560474395751953125 seconds insert_annotations---
+root - --- 0.00001049041748046875 seconds initialize_to_range delete all---
+root - --- 0.00462651252746582031 seconds initialize_to_range add record---
+root - --- 0.00621795654296875000 seconds add_cset_entries---
+root - --- 0.00890326499938964844 seconds insert_annotations---
+root - --- 0.00828146934509277344 seconds insert_annotations---
+root - --- 0.00966191291809082031 seconds insert_annotations---
+root - --- 0.00000739097595214844 seconds initialize_to_range delete all---
+root - --- 0.00529360771179199219 seconds initialize_to_range add record---
+root - --- 0.00469803810119628906 seconds add_cset_entries---
+root - --- 0.00547122955322265625 seconds insert_annotations---
+root - --- 0.00540971755981445312 seconds insert_annotations---
+root - --- 0.00485444068908691406 seconds insert_annotations---
+root - --- 0.00495886802673339844 seconds insert_annotations---
+root - --- 0.00532698631286621094 seconds insert_annotations---
+root - --- 0.03051352500915527344 seconds insert_annotations---
+root - --- 0.00585246086120605469 seconds insert_annotations---
+root - --- 0.00511550903320312500 seconds insert_annotations---
+root - --- 0.00001144409179687500 seconds initialize_to_range delete all---
+root - --- 0.00665020942687988281 seconds initialize_to_range add record---
+root - --- 0.00513243675231933594 seconds add_cset_entries---
+root - --- 0.00588512420654296875 seconds add_cset_entries---
+root - --- 0.00478816032409667969 seconds add_cset_entries---
+root - --- 0.00519776344299316406 seconds add_cset_entries---
+root - --- 0.00581121444702148438 seconds add_cset_entries---
+root - --- 0.00592875480651855469 seconds add_cset_entries---
+root - --- 0.00666022300720214844 seconds add_cset_entries---
+root - --- 0.00607752799987792969 seconds add_cset_entries---
+root - --- 0.00690722465515136719 seconds add_cset_entries---
+root - --- 0.00489664077758789062 seconds add_cset_entries---
+root - --- 0.00491333007812500000 seconds insert_annotations---
+root - --- 0.00488185882568359375 seconds insert_annotations---
+root - --- 0.00470256805419921875 seconds insert_annotations---
+root - --- 0.00000691413879394531 seconds initialize_to_range delete all---
+root - --- 0.00490689277648925781 seconds initialize_to_range add record---
+root - --- 0.00559020042419433594 seconds add_cset_entries---
+root - --- 0.00672292709350585938 seconds add_cset_entries---
+root - --- 0.00868248939514160156 seconds add_cset_entries---
+root - --- 0.00892305374145507812 seconds add_cset_entries---
+root - --- 0.00582003593444824219 seconds add_cset_entries---
+root - --- 0.00683689117431640625 seconds add_cset_entries---
+root - --- 0.00569963455200195312 seconds add_cset_entries---
+root - --- 0.00603914260864257812 seconds add_cset_entries---
+root - --- 0.00603580474853515625 seconds add_cset_entries---
+root - --- 0.00524568557739257812 seconds add_cset_entries---
+root - --- 0.00527429580688476562 seconds add_cset_entries---
+root - --- 0.00469541549682617188 seconds add_cset_entries---
+root - --- 0.00519227981567382812 seconds add_cset_entries---
+root - --- 0.00489139556884765625 seconds add_cset_entries---
+root - --- 0.00468873977661132812 seconds add_cset_entries---
+root - --- 0.00794792175292968750 seconds insert_annotations---
+root - --- 0.00700974464416503906 seconds insert_annotations---
+root - --- 0.00511717796325683594 seconds insert_annotations---
+root - --- 0.00789141654968261719 seconds insert_annotations---
+root - --- 0.00000786781311035156 seconds initialize_to_range delete all---
+root - --- 0.01072454452514648438 seconds initialize_to_range add record---
+root - --- 0.01448011398315429688 seconds add_cset_entries---
+root - --- 0.01805448532104492188 seconds add_cset_entries---
+root - --- 0.01216793060302734375 seconds add_cset_entries---
+root - --- 0.00872039794921875000 seconds add_cset_entries---
+root - --- 0.01228523254394531250 seconds add_cset_entries---
+root - --- 0.01729679107666015625 seconds add_cset_entries---
+root - --- 0.01226472854614257812 seconds add_cset_entries---
+root - --- 0.02068161964416503906 seconds add_cset_entries---
+root - --- 0.01309275627136230469 seconds add_cset_entries---
+root - --- 0.00714302062988281250 seconds add_cset_entries---
+root - --- 0.00790524482727050781 seconds add_cset_entries---
+root - --- 0.00719642639160156250 seconds add_cset_entries---
+root - --- 0.00514245033264160156 seconds add_cset_entries---
+root - --- 0.00478506088256835938 seconds add_cset_entries---
+root - --- 0.00616312026977539062 seconds add_cset_entries---
+root - --- 0.00538182258605957031 seconds add_cset_entries---
+root - --- 0.00565004348754882812 seconds add_cset_entries---
+root - --- 0.00476455688476562500 seconds add_cset_entries---
+root - --- 0.00523090362548828125 seconds add_cset_entries---
+root - --- 0.00517010688781738281 seconds add_cset_entries---
+root - --- 0.00674223899841308594 seconds add_cset_entries---
+root - --- 0.01171422004699707031 seconds add_cset_entries---
+root - --- 0.00933361053466796875 seconds add_cset_entries---
+root - --- 0.00521779060363769531 seconds add_cset_entries---
+root - --- 0.00880885124206542969 seconds add_cset_entries---
+root - --- 0.00459003448486328125 seconds add_cset_entries---
+root - --- 0.00842881202697753906 seconds add_cset_entries---
+root - --- 0.00489616394042968750 seconds add_cset_entries---
+root - --- 0.00848150253295898438 seconds add_cset_entries---
+root - --- 0.00466847419738769531 seconds add_cset_entries---
+root - --- 0.00613284111022949219 seconds add_cset_entries---
+root - --- 0.00731134414672851562 seconds add_cset_entries---
+root - --- 0.00566077232360839844 seconds add_cset_entries---
+root - --- 0.00590848922729492188 seconds add_cset_entries---
+root - --- 0.00509023666381835938 seconds add_cset_entries---
+root - --- 0.00624895095825195312 seconds add_cset_entries---
+root - --- 0.00517320632934570312 seconds add_cset_entries---
+root - --- 0.00493931770324707031 seconds add_cset_entries---
+root - --- 0.00466942787170410156 seconds add_cset_entries---
+root - --- 0.00499582290649414062 seconds add_cset_entries---
+root - --- 0.00485253334045410156 seconds add_cset_entries---
+root - --- 0.00596165657043457031 seconds add_cset_entries---
+root - --- 0.00483775138854980469 seconds add_cset_entries---
+root - --- 0.00563025474548339844 seconds add_cset_entries---
+root - --- 0.00697565078735351562 seconds add_cset_entries---
+root - --- 0.00507330894470214844 seconds add_cset_entries---
+root - --- 0.00611281394958496094 seconds add_cset_entries---
+root - --- 0.00643730163574218750 seconds add_cset_entries---
+root - --- 0.00569891929626464844 seconds add_cset_entries---
+root - --- 0.00492382049560546875 seconds add_cset_entries---
+root - --- 0.00468683242797851562 seconds add_cset_entries---
+root - --- 0.00858640670776367188 seconds add_cset_entries---
+root - --- 0.00476574897766113281 seconds add_cset_entries---
+root - --- 0.00503063201904296875 seconds add_cset_entries---
+root - --- 0.00484943389892578125 seconds add_cset_entries---
+root - --- 0.00915312767028808594 seconds add_cset_entries---
+root - --- 0.00456809997558593750 seconds add_cset_entries---
+root - --- 0.00612187385559082031 seconds add_cset_entries---
+root - --- 0.00518989562988281250 seconds add_cset_entries---
+root - --- 0.00646400451660156250 seconds add_cset_entries---
+root - --- 0.00485277175903320312 seconds add_cset_entries---
+root - --- 0.00547361373901367188 seconds add_cset_entries---
+root - --- 0.00558781623840332031 seconds add_cset_entries---
+root - --- 0.00477313995361328125 seconds add_cset_entries---
+root - --- 0.00542211532592773438 seconds add_cset_entries---
+root - --- 0.00731444358825683594 seconds insert_annotations---
+root - --- 0.01481842994689941406 seconds insert_annotations---
