@@ -134,6 +134,8 @@ def tuid_endpoint(path):
 
             if query.meta.format == 'list':
                 formatter = _stream_list
+            elif query.meta.format == 'tuple':
+                formatter = _stream_tuple
             else:
                 formatter = _stream_table
 
@@ -143,8 +145,9 @@ def tuid_endpoint(path):
                 requests_passed=1
             )
 
+            response1 = formatter(response)
             return Response(
-                formatter(response),
+                response1,
                 status=200 if completed else 202,
                 headers={
                     "Content-Type": "application/json"
@@ -168,6 +171,20 @@ def _stream_table(files):
     for f, pairs in files:
         yield value2json([f, map_to_array(pairs)]).encode('utf8')
     yield b']}'
+
+
+def _stream_tuple(files):
+    if not files:
+        yield b'{"format":"list", "data":[]}'
+        return
+
+    sep = b'{"format":"tuple", "data":['
+    for _, triplet in files:
+        for r, f, tuid in triplet:
+            yield sep
+            yield value2json({"path": f, "tuids": (tuid)}).encode('utf8')
+            sep = b","
+        yield b']}'
 
 
 def _stream_list(files):

@@ -1501,38 +1501,46 @@ class TUIDService:
                 # threads are started at once.
                 del threads
 
-            temp = None
-            try:
-                request = wrap({
-                    "from": "files",
-                    "where": {"and": [
-                        {"eq": {"revision": revision}},
-                        {"eq": {"commit": commit}},
-                        {"eq": {"annotated_files": annotated_files}},
-                        {"in": {"path": annotations_to_get}},
-                        {"eq": {"branch": repo}}
-                    ]},
-                    "branch": repo,
-                    "meta": {
-                        "format": "list",
-                        "request_time": Date.now()
-                    }
-                })
-                temp = http.post_json(
-                    self.flask.endpoint,
-                    json=request,
-                    timeout=self.flask.timeout
-                )
-            except Exception as e:
-                Log.error("TUID generation service has problems.", cause=e)
+            # temp = None
+            # try:
+            #     request = wrap({
+            #         "from": "files",
+            #         "where": {"and": [
+            #             {"eq": {"revision": revision}},
+            #             {"eq": {"commit": commit}},
+            #             {"eq": {"annotated_files": annotated_files}},
+            #             {"in": {"path": annotations_to_get}},
+            #             {"eq": {"branch": repo}}
+            #         ]},
+            #         "branch": repo,
+            #         "meta": {
+            #             "format": "tuple",
+            #             "request_time": Date.now()
+            #         }
+            #     })
+            #     temp = http.post_json(
+            #         self.flask.endpoint,
+            #         json=request,
+            #         timeout=self.flask.timeout
+            #     )
+            # except Exception as e:
+            #     Log.error("TUID generation service has problems.", cause=e)
 
-            results.extend(temp.data)
+            #results.extend(temp.data)
+
+            with self.conn.transaction() as transaction:
+                results.extend(
+                    self._get_tuids(
+                        annotations_to_get, revision, annotated_files, commit=commit, repo=repo
+                    )
+                )
 
             del annotations_to_get[:]
             del annotated_files[:]
 
         # Help for memory
         gc.collect()
+        self.destringify_tuids(results)
         return results
 
     def insert_tuids_with_duplicates(
@@ -1665,16 +1673,19 @@ class TUIDService:
         """
         results = []
         completed = True
+        revision = "0451fe123f5b"
+
         with self.conn.transaction() as transaction:
             for fcount, annotated_object in enumerate(annotated_files):
                 file = files[fcount]
+                file = "dom/media/MediaManager.cpp"
                 # TODO: Replace old empty annotation if a new one is found
                 # TODO: at the same revision and if it is not empty as well.
                 # Make sure we are not adding the same thing another thread
                 # added.
                 tmp_ann = self._get_annotation(revision, file, transaction=transaction)
                 if tmp_ann != None:
-                    results.append((file, self.destringify_tuids(tmp_ann)))
+                    results.append((file, tmp_ann))
                     continue
 
                 # If it's not defined at this revision, we need to add it in
@@ -1762,7 +1773,7 @@ class TUIDService:
                 entry = [(revision, file, str_tuids)]
 
                 self.insert_annotations(transaction, entry)
-                results.append((copy.deepcopy(file), copy.deepcopy(tuids)))
+                results.append((copy.deepcopy(file), copy.deepcopy(entry)))
 
         return results, completed
 

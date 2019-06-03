@@ -56,6 +56,36 @@ GET_ANNOTATION_QUERY = "SELECT annotation FROM annotations WHERE revision=? and 
 GET_LATEST_MODIFICATION = "SELECT revision FROM latestFileMod WHERE file=?"
 
 
+
+
+def tuid_generator( self, file, revision, line_nums):
+    results = {}
+    completed = True
+    with self.conn.transaction() as transaction:
+        tmp_ann = self._get_annotation(revision, file, transaction=transaction)
+        tuids = {}
+        for line in tmp_ann.split("\n"):
+            tuid, line_num = line.split(",")
+            tuids[line_num] = tuid
+        if not tuids:
+            print("file in that revision does not exist in the DB")
+            completed = False
+            return {}, completed
+
+        for line in line_nums:
+            if line in tuids:
+                results[line] = tuids[line]
+            else:
+                results[line] = self.tuid()
+
+    return results, completed
+
+
+
+
+
+
+
 class TUIDService:
     @override
     def __init__(
