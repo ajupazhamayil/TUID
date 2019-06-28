@@ -504,6 +504,24 @@ class TUIDService:
         Log.note("Thread {{pos}} is ending.", pos=res_position)
         return
 
+    def mthread_caching_get_tuids_from_files(
+        self,
+        files,
+        revision,
+        results,
+        res_position,
+        going_forward=False,
+        repo=None,
+        please_stop=None,
+    ):
+        Log.note("Thread {{pos}} is running.", pos=res_position)
+        # Interested to know only it completed or not
+        _, results[res_position] = self.get_tuids_from_files(
+            files, revision, going_forward=going_forward, repo=repo
+        )
+        Log.note("Thread {{pos}} is ending.", pos=res_position)
+        return
+
     def _add_thread(self):
         with self.service_thread_locker:
             self.service_threads_running += 1
