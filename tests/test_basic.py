@@ -40,15 +40,25 @@ def service(config, new_db):
 
 
 def test_transactions(service):
-    # This should pass
-    old = service.get_tuids(
-        "/testing/geckodriver/CONTRIBUTING.md", "6162f89a4838"
-    )
-    new = service.get_tuids(
-        "/testing/geckodriver/CONTRIBUTING.md", "06b1a22c5e62"
-    )
+    service.clogger.initialize_to_range("529092fc9247", "2fe618b2b660", delete_old=False)
+    #rev_origin = "529092fc9247"
+    rev1 = "ee470df77e3f"
+    rev2 = "2fe618b2b660"
+    file = "testing/geckodriver/doc/TraceLogs.md"
+
+    old = service.get_tuids(file, rev1)
+    new = service.get_tuids(file, rev2)
 
     assert len(old) == len(new)
+    # This should pass
+    # old = service.get_tuids(
+    #     "/testing/geckodriver/CONTRIBUTING.md", "6162f89a4838"
+    # )
+    # new = service.get_tuids(
+    #     "/testing/geckodriver/CONTRIBUTING.md", "06b1a22c5e62"
+    # )
+    #
+    # assert len(old) == len(new)
 
     # listed_inserts = [None] * 100
     listed_inserts = [

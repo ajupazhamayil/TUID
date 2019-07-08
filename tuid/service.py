@@ -375,6 +375,62 @@ class TUIDService:
         output2["merge"] = check_merge(merge_description)
         return output2
 
+
+
+
+
+    # Gets an annotated file from a particular revision from https://hg.mozilla.org/
+    def _get_hg_annotate_without_thread(
+        self, cset, file, repo
+    ):
+        url = str(HG_URL) + "/" + repo + "/json-annotate/" + cset + "/" + file
+        if DEBUG:
+            Log.note("HG: {{url}}", url=url)
+
+        # Wait until there is room to request
+        self.statsdaemon.update_anns_waiting(1)
+        num_requests = MAX_CONCURRENT_ANN_REQUESTS
+        timeout = Till(seconds=ANN_WAIT_TIME.seconds)
+        while num_requests >= MAX_CONCURRENT_ANN_REQUESTS and not timeout:
+            with self.request_locker:
+                num_requests = self.num_requests
+                if num_requests < MAX_CONCURRENT_ANN_REQUESTS:
+                    self.num_requests += 1
+                    break
+            if ANNOTATE_DEBUG:
+                Log.note(
+                    "Waiting to request annotation at {{rev}} for file: {{file}}",
+                    rev=cset,
+                    file=file,
+                )
+            Till(seconds=MAX_ANN_REQUESTS_WAIT_TIME.seconds).wait()
+        self.statsdaemon.update_anns_waiting(-1)
+
+        if not timeout:
+            try:
+                result = http.get_json(url, retry=RETRY)
+            except Exception as e:
+                Log.warning(
+                    "Unexpected error while trying to get annotate for {{url}}",
+                    url=url,
+                    cause=e,
+                )
+            finally:
+                with self.request_locker:
+                    self.num_requests -= 1
+        else:
+            Log.warning(
+                "Timeout {{timeout}} exceeded waiting for annotation: {{url}}",
+                timeout=ANN_WAIT_TIME,
+                url=url,
+            )
+        return result
+
+
+
+
+
+
     # Gets an annotated file from a particular revision from https://hg.mozilla.org/
     def _get_hg_annotate(
         self, cset, file, annotated_files, thread_num, repo, please_stop=None
@@ -1641,11 +1697,31 @@ class TUIDService:
         ) - set(existing_tuids.keys())
         return new_lines, existing_tuids
 
+
+
+
+
+
+
+    def order_revisions(self, rev_set):
+        rev_list = list(rev_set)
+        result = set()
+        for i, r in enumerate(rev_list[:-1]):
+            result.update(self.clogger.get_revnnums_from_range(
+                r, rev_list[i+1]
+            ))
+        # This result contains revision starting from file-created-revision
+        # to file-requested-revision
+        result = [x[1] for x in sorted(result, key=lambda x: int(x[0]))]
+        return result
+
+
+
     def _get_tuids(
         self, files, revision, annotated_files, repo=None
     ):
         """
-        Returns (TUID, line) tuples for a given file at a given revision.
+        Inserts initial revision annotations for a given file.
 
         Uses json-annotate to find all lines in this revision, then it updates
         the database with any missing revisions for the file changes listed
@@ -1659,7 +1735,8 @@ class TUIDService:
         :param repo: The branch to get tuids from
         :return: List of TuidMap objects
         """
-        with self.temporal_locker:
+        #with self.temporal_locker:
+        if True:
             results = []
             for fcount, annotated_object in enumerate(annotated_files):
                 file = files[fcount]
@@ -1710,52 +1787,176 @@ class TUIDService:
                 # Gather all missing csets and the
                 # corresponding lines.
                 line_origins = []
+                rev_origins = set()
                 for node in annotated_object["annotate"]:
                     cset_len12 = node["node"][:12]
-
                     # If the line added by `cset_len12` is not known
                     # add it. Use the 'abspath' field to determine the
                     # name of the file it was created in (in case it was
                     # changed). Copy to make sure we don't create a reference
                     # here.
-                    line_origins.append(
-                        copy.deepcopy(
-                            (node["abspath"], cset_len12, int(node["targetline"]))
-                        )
+                    rev_origins.update({cset_len12})
+
+                # The revision requested may not have done any changes to the requested file
+                # so we add the revision to the set, If already there, It will not insert
+                rev_origins.update({revision})
+                if len(rev_origins)>1:
+                    # Order the all the available revisions
+                    ordered_revs = self.order_revisions(rev_origins)
+                    # Takes the initial revision of this file
+                    initial_rev = ordered_revs[0]
+                    # Gets annotations for initial revision of the file
+                    initial_annotation = self._get_hg_annotate_without_thread(initial_rev, file, repo)
+                    # Get tuids for the first revision of the file
+                    temp = self._annotate_for_origin_rev([file], initial_rev, [initial_annotation])
+                    # Start loop from 1 because we already inserted annotations for initial revision
+                    current_rev = initial_rev
+                    for next_rev in ordered_revs[1:]:
+                        temp = self._update_file_frontiers([(file, current_rev)], next_rev)
+                        current_rev = next_rev
+                    # We only need the last revision's (that is requested revision's) TUIDs
+                    results.append(temp)
+
+                elif rev_origins[0] == revision:
+                    initial_rev = revision
+                    # Gets annotations for initial revision of the file
+                    initial_annotation = self._get_hg_annotate_without_thread(initial_rev, file, repo)
+                    # Get tuids for the first revision of the file
+                    results.append(self._annotate_for_origin_rev([file], initial_rev, [initial_annotation]))
+                else:
+                    initial_rev = rev_origins[0]
+                    # Gets annotations for initial revision of the file
+                    initial_annotation = self._get_hg_annotate_without_thread(initial_rev, file, repo)
+                    # Get tuids for the first revision of the file
+                    temp = self._annotate_for_origin_rev([file], initial_rev, [initial_annotation])
+                    # Update the file frontier to the next revision (which is requested)
+                    temp = self._update_file_frontiers([(file, initial_rev)], revision)
+                    results.append(temp)
+
+        return results
+
+
+
+
+
+
+
+
+
+    def _annotate_for_origin_rev(
+        self, files, revision, annotated_files, repo=None
+    ):
+        """
+        Returns (TUID, line) tuples for a given file at a given revision.
+
+        Uses json-annotate to find all lines in this revision, then it updates
+        the database with any missing revisions for the file changes listed
+        in annotate. Then, we use the information from annotate coupled with the
+        diff information that was inserted into the DB to return TUIDs. This way
+        we don't have to deal with child, parents, dates, etc..
+
+        :param files: list of files to process
+        :param revision: revision at which to get the file
+        :param annotated_files: annotations for each file
+        :param repo: The branch to get tuids from
+        :return: List of TuidMap objects
+        """
+        results = []
+        for fcount, annotated_object in enumerate(annotated_files):
+            file = files[fcount]
+            # TODO: Replace old empty annotation if a new one is found
+            # TODO: at the same revision and if it is not empty as well.
+            # Make sure we are not adding the same thing another thread
+            # added.
+            tmp_ann, _ = self._get_annotation(revision, file)
+            if tmp_ann != None:
+                results.append((file, self.destringify_tuids(tmp_ann)))
+                continue
+
+            # If it's not defined at this revision, we need to add it in
+            errored = False
+            if isinstance(annotated_object, (text_type, str)):
+                errored = True
+                Log.warning(
+                    "{{file}} does not exist in the revision={{cset}} branch={{branch_name}}",
+                    branch_name=repo,
+                    cset=revision,
+                    file=file,
+                )
+            elif annotated_object is None:
+                Log.warning(
+                    "Unexpected error getting annotation for: {{file}} in the revision={{cset}} branch={{branch_name}}",
+                    branch_name=repo,
+                    cset=revision,
+                    file=file,
+                )
+                errored = True
+            elif "annotate" not in annotated_object:
+                Log.warning(
+                    "Missing annotate, type got: {{ann_type}}, expecting:dict returned when getting "
+                    "annotation for: {{file}} in the revision {{cset}}",
+                    cset=revision,
+                    file=file,
+                    ann_type=type(annotated_object),
+                )
+                errored = True
+
+            if errored:
+                Log.note("Inserting dummy entry...")
+                self.insert_tuid_dummy(revision, file)
+                self.insert_annotate_dummy(revision, file)
+                results.append((file, []))
+                continue
+
+            # Gather all missing csets and the
+            # corresponding lines.
+            line_origins = []
+            for node in annotated_object["annotate"]:
+                cset_len12 = node["node"][:12]
+
+                # If the line added by `cset_len12` is not known
+                # add it. Use the 'abspath' field to determine the
+                # name of the file it was created in (in case it was
+                # changed). Copy to make sure we don't create a reference
+                # here.
+                line_origins.append(
+                    copy.deepcopy(
+                        (node["abspath"], cset_len12, int(node["targetline"]))
+                    )
+                )
+
+            # Update DB with any revisions found in annotated
+            # object that are not in the DB.
+            new_line_origins = {}
+            new_lines, existing_tuids = self.get_new_lines(line_origins)
+            if len(new_lines) > 0:
+                try:
+                    new_line_origins = self.insert_tuids_with_duplicates(
+                        file, revision, new_lines, line_origins
                     )
 
-                # Update DB with any revisions found in annotated
-                # object that are not in the DB.
-                new_line_origins = {}
-                new_lines, existing_tuids = self.get_new_lines(line_origins)
-                if len(new_lines) > 0:
-                    try:
-                        new_line_origins = self.insert_tuids_with_duplicates(
-                            file, revision, new_lines, line_origins
-                        )
+                    # Format so we don't have to use [0] to get at the tuids
+                    for linenum in new_line_origins:
+                        new_line_origins[linenum] = new_line_origins[linenum][0]
+                except Exception as e:
+                    # Something broke for this file, ignore it and go to the
+                    # next one.
+                    Log.note("Failed to insert new tuids {{cause}}", cause=e)
+                    continue
 
-                        # Format so we don't have to use [0] to get at the tuids
-                        for linenum in new_line_origins:
-                            new_line_origins[linenum] = new_line_origins[linenum][0]
-                    except Exception as e:
-                        # Something broke for this file, ignore it and go to the
-                        # next one.
-                        Log.note("Failed to insert new tuids {{cause}}", cause=e)
-                        continue
+            tuids = []
+            for line_ind, line_origin in enumerate(line_origins):
+                line_num = line_ind + 1
+                if line_num in existing_tuids:
+                    tuids.append(TuidMap(existing_tuids[line_num], line_num))
+                else:
+                    tuids.append(TuidMap(new_line_origins[line_num], line_num))
 
-                tuids = []
-                for line_ind, line_origin in enumerate(line_origins):
-                    line_num = line_ind + 1
-                    if line_num in existing_tuids:
-                        tuids.append(TuidMap(existing_tuids[line_num], line_num))
-                    else:
-                        tuids.append(TuidMap(new_line_origins[line_num], line_num))
+            str_tuids = self.stringify_tuids(tuids)
+            entry = [(revision, file, str_tuids)]
 
-                str_tuids = self.stringify_tuids(tuids)
-                entry = [(revision, file, str_tuids)]
-
-                self.insert_annotations(entry)
-                results.append((copy.deepcopy(file), copy.deepcopy(tuids)))
+            self.insert_annotations(entry)
+            results.append((copy.deepcopy(file), copy.deepcopy(tuids)))
 
         return results
 
