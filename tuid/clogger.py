@@ -26,8 +26,7 @@ from mo_times.durations import DAY
 from pyLibrary.env import http, elasticsearch
 from pyLibrary.sql import sql_list, quote_set
 from tuid import sql
-from tuid.util import HG_URL
-from tuid import insert, delete
+from tuid.util import HG_URL, insert, delete
 
 RETRY = {"times": 3, "sleep": 5}
 SQL_CSET_BATCH_SIZE = 500
@@ -43,9 +42,7 @@ CHANGESETS_PER_CLOG = 20  # changesets
 BACKFILL_REVNUM_TIMEOUT = int(MAX_BACKFILL_CLOGS * 2.5)  # Assume 2.5 seconds per clog
 MINIMUM_PERMANENT_CSETS = 200  # changesets
 MAXIMUM_NONPERMANENT_CSETS = 1500  # changesets
-SIGNAL_MAINTENANCE_CSETS = int(
-    MAXIMUM_NONPERMANENT_CSETS + (0.2 * MAXIMUM_NONPERMANENT_CSETS)
-)
+SIGNAL_MAINTENANCE_CSETS = int(MAXIMUM_NONPERMANENT_CSETS + (0.2 * MAXIMUM_NONPERMANENT_CSETS))
 UPDATE_VERY_OLD_FRONTIERS = False
 
 SINGLE_CLOGGER = None
@@ -62,12 +59,7 @@ class Clogger:
         return cls.SINGLE_CLOGGER
 
     def __init__(
-        self,
-        conn=None,
-        tuid_service=None,
-        start_workers=True,
-        new_table=False,
-        kwargs=None,
+        self, conn=None, tuid_service=None, start_workers=True, new_table=False, kwargs=None
     ):
         try:
             self.config = kwargs
@@ -108,10 +100,7 @@ class Clogger:
             self.init_db()
             query = self.min_max_dsl("max")
             self.next_revnum = (
-                coalesce(
-                    eval(str(self.csetlog.search(query).aggregations.value.value)), 0
-                )
-                + 1
+                coalesce(eval(str(self.csetlog.search(query).aggregations.value.value)), 0) + 1
             )
 
             self.csets_todo_backwards = Queue(name="Clogger.csets_todo_backwards")
@@ -132,15 +121,11 @@ class Clogger:
             self.maintenance_thread = None
 
             # Make sure we are filled before allowing queries
-            query = {
-                "aggs": {"output": {"value_count": {"field": "revnum"}}},
-                "size": 0,
-            }
+            query = {"aggs": {"output": {"value_count": {"field": "revnum"}}}, "size": 0}
             numrevs = int(self.csetlog.search(query).aggregations.output.value)
             if numrevs < MINIMUM_PERMANENT_CSETS:
                 Log.note(
-                    "Filling in csets to hold {{minim}} csets.",
-                    minim=MINIMUM_PERMANENT_CSETS,
+                    "Filling in csets to hold {{minim}} csets.", minim=MINIMUM_PERMANENT_CSETS
                 )
                 oldest_rev = "tip"
 
@@ -152,13 +137,10 @@ class Clogger:
                 tmp = self.csetlog.search(query).hits.hits[0]._source.revision
                 if tmp:
                     oldest_rev = tmp
-                self._fill_in_range(
-                    MINIMUM_PERMANENT_CSETS - numrevs, oldest_rev, timestamp=False
-                )
+                self._fill_in_range(MINIMUM_PERMANENT_CSETS - numrevs, oldest_rev, timestamp=False)
 
             Log.note(
-                "Table is filled with atleast {{minim}} entries.",
-                minim=MINIMUM_PERMANENT_CSETS,
+                "Table is filled with atleast {{minim}} entries.", minim=MINIMUM_PERMANENT_CSETS
             )
 
             if start_workers:
@@ -181,25 +163,16 @@ class Clogger:
         return query
 
     def _make_record_csetlog(self, revnum, revision, timestamp):
-        record = {
-            "_id": revnum,
-            "revnum": revnum,
-            "revision": revision,
-            "timestamp": timestamp,
-        }
+        record = {"_id": revnum, "revnum": revnum, "revision": revision, "timestamp": timestamp}
         return {"value": record}
 
     def start_backfilling(self):
         if not self.backfill_thread:
-            self.backfill_thread = Thread.run(
-                "clogger-backfill", self.fill_backward_with_list
-            )
+            self.backfill_thread = Thread.run("clogger-backfill", self.fill_backward_with_list)
 
     def start_tipfillling(self):
         if not self.tipfill_thread:
-            self.tipfill_thread = Thread.run(
-                "clogger-tip", self.fill_forward_continuous
-            )
+            self.tipfill_thread = Thread.run("clogger-tip", self.fill_forward_continuous)
 
     def start_workers(self):
         self.start_tipfillling()
@@ -229,9 +202,7 @@ class Clogger:
         :return: max revnum that was added
         """
         query = self.min_max_dsl("max")
-        tmp = coalesce(
-            eval(str(self.csetlog.search(query).aggregations.value.value)), 0
-        )
+        tmp = coalesce(eval(str(self.csetlog.search(query).aggregations.value.value)), 0)
         return tmp
 
     def get_tip(self):
@@ -307,9 +278,7 @@ class Clogger:
             "size": total.hits.total,
             "_source": {"includes": ["revnum", "revision"]},
             "query": {
-                "bool": {
-                    "must": [{"range": {"revnum": {"gte": low_num, "lte": high_num}}}]
-                }
+                "bool": {"must": [{"range": {"revnum": {"gte": low_num, "lte": high_num}}}]}
             },
         }
         result = self.csetlog.search(query).hits.hits
@@ -336,13 +305,9 @@ class Clogger:
         """
 
         query = self.min_max_dsl("min")
-        current_min = coalesce(
-            eval(str(self.csetlog.search(query).aggregations.value.value)), 0
-        )
+        current_min = coalesce(eval(str(self.csetlog.search(query).aggregations.value.value)), 0)
         query = self.min_max_dsl("max")
-        current_max = coalesce(
-            eval(str(self.csetlog.search(query).aggregations.value.value)), 0
-        )
+        current_max = coalesce(eval(str(self.csetlog.search(query).aggregations.value.value)), 0)
 
         direction = -1
         start = current_min - 1
@@ -364,15 +329,15 @@ class Clogger:
                 fmt_insert_list.append(cset_entry)
 
         # for _, tmp_insert_list in jx.groupby(fmt_insert_list, size=SQL_CSET_BATCH_SIZE):
-        records = wrap([
-            self._make_record_csetlog(revnum, revision, timestamp)
-            for revnum, revision, timestamp in fmt_insert_list
-        ])
+        records = wrap(
+            [
+                self._make_record_csetlog(revnum, revision, timestamp)
+                for revnum, revision, timestamp in fmt_insert_list
+            ]
+        )
         insert(self.csetlog, records)
 
-    def _fill_in_range(
-        self, parent_cset, child_cset, timestamp=False, number_forward=True
-    ):
+    def _fill_in_range(self, parent_cset, child_cset, timestamp=False, number_forward=True):
         """
         Fills cset logs in a certain range. 'parent_cset' can be an int and in that case,
         we get that many changesets instead. If parent_cset is an int, then we consider
@@ -403,9 +368,7 @@ class Clogger:
         clogs_seen = 0
         final_rev = child_cset
         while not found_parent and clogs_seen < MAX_BACKFILL_CLOGS:
-            clog_url = (
-                str(HG_URL) + "/" + self.config.hg.branch + "/json-log/" + final_rev
-            )
+            clog_url = str(HG_URL) + "/" + self.config.hg.branch + "/json-log/" + final_rev
             clog_obj = self._get_clog(clog_url)
             clog_csets_list = list(clog_obj["changesets"])
             for clog_cset in clog_csets_list[:-1]:
@@ -441,9 +404,7 @@ class Clogger:
             final_rev = clog_csets_list[-1]["node"][:12]
 
         if found_parent:
-            self.add_cset_entries(
-                csets_to_add, timestamp=timestamp, number_forward=number_forward
-            )
+            self.add_cset_entries(csets_to_add, timestamp=timestamp, number_forward=number_forward)
         else:
             Log.warning(
                 "Couldn't find the end of the request for {{request}}. "
@@ -488,10 +449,7 @@ class Clogger:
             # since no auto addition possible
             query = self.min_max_dsl("max")
             max_revnum = (
-                coalesce(
-                    eval(str(self.csetlog.search(query).aggregations.value.value)), 0
-                )
-                + 1
+                coalesce(eval(str(self.csetlog.search(query).aggregations.value.value)), 0) + 1
             )
             self.csetlog.add(self._make_record_csetlog(max_revnum, new_rev, -1))
             self.csetlog.refresh()
@@ -539,10 +497,7 @@ class Clogger:
                     _, oldest_revision = self.get_tail()
 
                     self._fill_in_range(
-                        parent_cset,
-                        oldest_revision,
-                        timestamp=timestamp,
-                        number_forward=False,
+                        parent_cset, oldest_revision, timestamp=timestamp, number_forward=False
                     )
                 Log.note("Finished {{cset}}", cset=parent_cset)
             except Exception as e:
@@ -554,9 +509,7 @@ class Clogger:
         if an update has taken place.
         :return:
         """
-        clog_obj = self._get_clog(
-            str(HG_URL) + "/" + self.config.hg.branch + "/json-log/tip"
-        )
+        clog_obj = self._get_clog(str(HG_URL) + "/" + self.config.hg.branch + "/json-log/tip")
 
         _, newest_known_rev = self.get_tip()
 
@@ -578,10 +531,7 @@ class Clogger:
         csets_to_add = []
         csets_found = 0
         clogs_seen = 0
-        Log.note(
-            "Found new revisions. Updating csetLog tip to {{rev}}...",
-            rev=first_clog_entry,
-        )
+        Log.note("Found new revisions. Updating csetLog tip to {{rev}}...", rev=first_clog_entry)
         while not found_newest_known and clogs_seen < MAX_TIPFILL_CLOGS:
             clog_csets_list = list(clog_obj["changesets"])
             for clog_cset in clog_csets_list[:-1]:
@@ -600,9 +550,7 @@ class Clogger:
                 # Get the next page
                 clogs_seen += 1
                 final_rev = clog_csets_list[-1]["node"][:12]
-                clog_url = (
-                    str(HG_URL) + "/" + self.config.hg.branch + "/json-log/" + final_rev
-                )
+                clog_url = str(HG_URL) + "/" + self.config.hg.branch + "/json-log/" + final_rev
                 clog_obj = self._get_clog(clog_url)
 
         if clogs_seen >= MAX_TIPFILL_CLOGS:
@@ -622,11 +570,7 @@ class Clogger:
     def fill_forward_continuous(self, please_stop=None):
         while not please_stop:
             try:
-                while (
-                    not please_stop
-                    and not self.disable_tipfilling
-                    and self.update_tip()
-                ):
+                while not please_stop and not self.disable_tipfilling and self.update_tip():
                     pass
                 (please_stop | Till(seconds=CSET_TIP_WAIT_TIME)).wait()
             except Exception as e:

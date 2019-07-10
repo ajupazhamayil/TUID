@@ -19,7 +19,7 @@ from pyLibrary.sql import sql_list, sql_iso
 from pyLibrary.sql.sqlite import quote_value, DOUBLE_TRANSACTION_ERROR
 from tuid.clogger import Clogger
 from tuid import sql
-from tests import delete, insert
+from tuid.util import delete, insert
 
 _clogger = None
 _conn = None
@@ -75,10 +75,7 @@ def test_tipfilling(clogger):
     new_tip = None
     while num_trys > 0:
         result = clogger.csetlog.search(query)
-        new_tip = (
-            result.hits.hits[0]._source.revnum,
-            result.hits.hits[0]._source.revision,
-        )
+        new_tip = (result.hits.hits[0]._source.revnum, result.hits.hits[0]._source.revision)
         if new_tip:
             if current_tip == new_tip[1]:
                 new_tip = new_tip[1]

@@ -7,7 +7,6 @@
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import unicode_literals
-from tests import delete
 
 import json
 
@@ -21,7 +20,7 @@ from pyLibrary.env import http
 from pyLibrary.sql import sql_list, quote_set
 from pyLibrary.sql.sqlite import quote_value, DOUBLE_TRANSACTION_ERROR, quote_list
 from tuid.service import TUIDService
-from tuid.util import map_to_array
+from tuid.util import map_to_array, delete
 
 _service = None
 
@@ -41,7 +40,7 @@ def service(config, new_db):
 
 def test_transactions(service):
     service.clogger.initialize_to_range("529092fc9247", "2fe618b2b660", delete_old=False)
-    #rev_origin = "529092fc9247"
+    # rev_origin = "529092fc9247"
     rev1 = "ee470df77e3f"
     rev2 = "2fe618b2b660"
     file = "testing/geckodriver/doc/TraceLogs.md"
@@ -61,9 +60,7 @@ def test_transactions(service):
     # assert len(old) == len(new)
 
     # listed_inserts = [None] * 100
-    listed_inserts = [
-        ("test" + str(count), str(count)) for count, entry in enumerate(range(100))
-    ]
+    listed_inserts = [("test" + str(count), str(count)) for count, entry in enumerate(range(100))]
     listed_inserts.append("hello world")  # This should cause a transaction failure
 
     try:
@@ -103,8 +100,7 @@ def test_transactions2(service):
         try:
             # Query for one change
             query_res1 = service.conn.get(
-                "SELECT revision FROM latestFileMod WHERE file=?",
-                ("testing_transaction2_1",),
+                "SELECT revision FROM latestFileMod WHERE file=?", ("testing_transaction2_1",)
             )
             assert False
         except Exception as e:
@@ -112,8 +108,7 @@ def test_transactions2(service):
 
         # Query for the other change
         query_res2 = t.get(
-            "SELECT revision FROM latestFileMod WHERE file=?",
-            ("testing_transaction2_2",),
+            "SELECT revision FROM latestFileMod WHERE file=?", ("testing_transaction2_2",)
         )
 
     assert query_res2[0][0] == "2"
@@ -175,7 +170,7 @@ def test_multithread_tuid_uniqueness(service):
         ["/layout/generic/nsIFrame.h"],
         ["/layout/generic/nsImageFrame.cpp"],
         ["/layout/painting/FrameLayerBuilder.cpp"],
-        ["/widget/cocoa/nsNativeThemeCocoa.mm"]
+        ["/widget/cocoa/nsNativeThemeCocoa.mm"],
     ]
 
     num_tests = len(test_files)
@@ -189,22 +184,17 @@ def test_multithread_tuid_uniqueness(service):
             old_revision,
             tuided_files,
             i,
-            going_forward=True
+            going_forward=True,
         )
         for i, a in enumerate(tuided_files)
     ]
-    too_long = Till(seconds=timeout_seconds*4)
+    too_long = Till(seconds=timeout_seconds * 4)
     for t in threads:
         t.join(till=too_long)
     assert not too_long
 
     # Checks for uniqueness of tuids in different files
-    tuidlist = [
-        tm.tuid
-        for ft in tuided_files
-        for path, tuidmaps in ft
-        for tm in tuidmaps
-    ]
+    tuidlist = [tm.tuid for ft in tuided_files for path, tuidmaps in ft for tm in tuidmaps]
     # Ensures no duplicates
     assert len(tuidlist) == len(set(tuidlist))
 
@@ -218,22 +208,17 @@ def test_multithread_tuid_uniqueness(service):
             new_revision,
             tuided_files,
             i,
-            going_forward=True
+            going_forward=True,
         )
         for i, a in enumerate(tuided_files)
     ]
-    too_long = Till(seconds=timeout_seconds*4)
+    too_long = Till(seconds=timeout_seconds * 4)
     for t in threads:
         t.join(till=too_long)
     assert not too_long
 
     # Makes one list with all the TUIDs from all the files
-    tuidlist = [
-        tm.tuid
-        for ft in tuided_files
-        for path, tuidmaps in ft
-        for tm in tuidmaps
-    ]
+    tuidlist = [tm.tuid for ft in tuided_files for path, tuidmaps in ft for tm in tuidmaps]
     # Ensures no duplicates
     assert len(tuidlist) == len(set(tuidlist))
 
@@ -265,9 +250,7 @@ def test_multithread_service(service):
     # All returned results should be the same.
     expected_filename, expected_tuids = tuided_files[0][0]
     for result in tuided_files[1:]:
-        assert len(result) == len(
-            test_file
-        )  # get_tuid returns a list of (file, tuids) tuples
+        assert len(result) == len(test_file)  # get_tuid returns a list of (file, tuids) tuples
         filename, tuids = result[0]
         assert filename == expected_filename
         assert set(tuids) == set(expected_tuids)
@@ -301,15 +284,11 @@ def test_new_then_old(service):
 
 def test_tuids_on_changed_file(service):
     # https://hg.mozilla.org/integration/mozilla-inbound/file/a6fdd6eae583/taskcluster/ci/test/tests.yml
-    old_lines = service.get_tuids(  # 2205 lines
-        "/taskcluster/ci/test/tests.yml", "a6fdd6eae583"
-    )
+    old_lines = service.get_tuids("/taskcluster/ci/test/tests.yml", "a6fdd6eae583")  # 2205 lines
 
     # THE FILE HAS NOT CHANGED, SO WE EXPECT THE SAME SET OF TUIDs AND LINES TO BE RETURNED
     # https://hg.mozilla.org/integration/mozilla-inbound/file/a0bd70eac827/taskcluster/ci/test/tests.yml
-    same_lines = service.get_tuids(  # 2201 lines
-        "/taskcluster/ci/test/tests.yml", "a0bd70eac827"
-    )
+    same_lines = service.get_tuids("/taskcluster/ci/test/tests.yml", "a0bd70eac827")  # 2201 lines
 
     # assertAlmostEqual PERFORMS A STRUCURAL COMPARISION
     assert same_lines == old_lines
@@ -319,21 +298,15 @@ def test_removed_lines(service):
     # THE FILE HAS FOUR LINES REMOVED
     # https://hg.mozilla.org/integration/mozilla-inbound/rev/c8dece9996b7
     # https://hg.mozilla.org/integration/mozilla-inbound/file/c8dece9996b7/taskcluster/ci/test/tests.yml
-    old_lines = service.get_tuids(  # 2205 lines
-        "/taskcluster/ci/test/tests.yml", "a6fdd6eae583"
-    )
-    new_lines = service.get_tuids(  # 2201 lines
-        "/taskcluster/ci/test/tests.yml", "c8dece9996b7"
-    )
+    old_lines = service.get_tuids("/taskcluster/ci/test/tests.yml", "a6fdd6eae583")  # 2205 lines
+    new_lines = service.get_tuids("/taskcluster/ci/test/tests.yml", "c8dece9996b7")  # 2201 lines
 
     # EXPECTING
     assert len(new_lines[0][1]) == len(old_lines[0][1]) - 4
 
 
 def test_remove_file(service):
-    entries = service.get_tuids(
-        "/third_party/speedometer/InteractiveRunner.html", "e3f24e165618"
-    )
+    entries = service.get_tuids("/third_party/speedometer/InteractiveRunner.html", "e3f24e165618")
     assert 0 == len(entries[0][1])
 
 
@@ -361,12 +334,8 @@ def test_500_file(service):
 
 
 def test_file_with_line_replacement(service):
-    new = service.get_tuids(
-        "/python/mozbuild/mozbuild/action/test_archive.py", "e3f24e165618"
-    )
-    old = service.get_tuids(
-        "/python/mozbuild/mozbuild/action/test_archive.py", "c730f942ce30"
-    )
+    new = service.get_tuids("/python/mozbuild/mozbuild/action/test_archive.py", "e3f24e165618")
+    old = service.get_tuids("/python/mozbuild/mozbuild/action/test_archive.py", "c730f942ce30")
     new = new[0][1]
     old = old[0][1]
     assert 653 == len(new)
@@ -379,12 +348,8 @@ def test_file_with_line_replacement(service):
 
 
 def test_distant_rev(service):
-    old = service.get_tuids(
-        "/python/mozbuild/mozbuild/action/test_archive.py", "e3f24e165618"
-    )
-    new = service.get_tuids(
-        "/python/mozbuild/mozbuild/action/test_archive.py", "0d1e55d87931"
-    )
+    old = service.get_tuids("/python/mozbuild/mozbuild/action/test_archive.py", "e3f24e165618")
+    new = service.get_tuids("/python/mozbuild/mozbuild/action/test_archive.py", "0d1e55d87931")
     new = new[0][1]
     old = old[0][1]
     assert len(old) == 653
@@ -434,14 +399,12 @@ def test_multi_parent_child_changes(service):
 
     # A past revision: https://hg.mozilla.org/mozilla-central/rev/bb6db24a20dd
     past_rev = service.get_tuids(
-        "toolkit/components/printingui/ipc/PrintProgressDialogParent.cpp",
-        "bb6db24a20dd",
+        "toolkit/components/printingui/ipc/PrintProgressDialogParent.cpp", "bb6db24a20dd"
     )[0][1]
 
     # Check it on the child which doesn't modify it: https://hg.mozilla.org/mozilla-central/rev/39717163c6c9
     next_rev = service.get_tuids(
-        "toolkit/components/printingui/ipc/PrintProgressDialogParent.cpp",
-        "39717163c6c9",
+        "toolkit/components/printingui/ipc/PrintProgressDialogParent.cpp", "39717163c6c9"
     )[0][1]
 
     assert len(earliest_rev) == len(next_rev)
@@ -472,10 +435,7 @@ def test_many_files_one_revision(service):
     service.clogger.start_backfilling()
 
     with service.conn.transaction() as t:
-        t.execute(
-            "DELETE FROM latestFileMod WHERE file IN " +
-            quote_set(test_file)
-        )
+        t.execute("DELETE FROM latestFileMod WHERE file IN " + quote_set(test_file))
         filter = {"terms": {"file": test_file}}
         delete(service.annotations, filter)
 
@@ -511,10 +471,7 @@ def test_one_addition_many_files(service):
     service.clogger.start_backfilling()
 
     with service.conn.transaction() as t:
-        t.execute(
-            "DELETE FROM latestFileMod WHERE file IN " +
-            quote_set(test_file)
-        )
+        t.execute("DELETE FROM latestFileMod WHERE file IN " + quote_set(test_file))
         filter = {"terms": {"file": test_file}}
         delete(service.annotations, filter)
 
@@ -529,9 +486,7 @@ def test_one_addition_many_files(service):
 
     Log.note("Total files: {{total}}", total=str(len(test_file)))
 
-    tuid_response, _ = service.get_tuids_from_files(
-        test_file, test_rev, use_thread=False
-    )
+    tuid_response, _ = service.get_tuids_from_files(test_file, test_rev, use_thread=False)
     print("new:")
     for filename, tuids in tuid_response:
         print("     " + filename + ":" + str(len(tuids)))
@@ -685,10 +640,7 @@ def test_one_http_call_required(service):
         },
     }
 
-    files_not_changed = {
-        "testing/geckodriver/CONTRIBUTING.md": 1,
-        "dom/media/MediaManager.cpp": 1,
-    }
+    files_not_changed = {"testing/geckodriver/CONTRIBUTING.md": 1, "dom/media/MediaManager.cpp": 1}
 
     service.clogger.csetlog.refresh()
     service.clogger.disable_all()
@@ -704,17 +656,12 @@ def test_one_http_call_required(service):
     )  # Useful in testing
 
     with service.conn.transaction() as t:
-        t.execute(
-            "DELETE FROM latestFileMod WHERE file IN " +
-            quote_set(proc_files)
-        )
+        t.execute("DELETE FROM latestFileMod WHERE file IN " + quote_set(proc_files))
         filter = {"terms": {"file": proc_files}}
         delete(service.annotations, filter)
 
     Log.note("Number of files to process: {{flen}}", flen=len(files))
-    first_f_n_tuids, _ = service.get_tuids_from_files(
-        proc_files, "d63ed14ed622", use_thread=False
-    )
+    first_f_n_tuids, _ = service.get_tuids_from_files(proc_files, "d63ed14ed622", use_thread=False)
 
     # THIS NEXT CALL SHOULD BE FAST, DESPITE THE LACK OF LOCAL CACHE
     http.DEBUG = True
@@ -722,9 +669,7 @@ def test_one_http_call_required(service):
     start = http.request_count
     timer = Timer("get next revision")
     with timer:
-        f_n_tuids, _ = service.get_tuids_from_files(
-            proc_files, "14dc6342ec50", use_thread=False
-        )
+        f_n_tuids, _ = service.get_tuids_from_files(proc_files, "14dc6342ec50", use_thread=False)
     num_http_calls = http.request_count - start
     http.DEBUG = False
 
@@ -770,8 +715,7 @@ def test_long_file(service):
 
     with timer:
         service.get_tuids(
-            files="gfx/angle/checkout/src/libANGLE/formatutils.cpp",
-            revision="29dcc9cb77c3",
+            files="gfx/angle/checkout/src/libANGLE/formatutils.cpp", revision="29dcc9cb77c3"
         )
 
     assert timer.duration.seconds < 30
@@ -794,9 +738,7 @@ def test_out_of_order_get_tuids_from_files(service):
 
     result1, _ = service.get_tuids_from_files(test_file, rev_initial, use_thread=False)
     result2, _ = service.get_tuids_from_files(test_file, rev_latest, use_thread=False)
-    test_result, _ = service.get_tuids_from_files(
-        test_file, rev_middle, use_thread=False
-    )
+    test_result, _ = service.get_tuids_from_files(test_file, rev_middle, use_thread=False)
     # Check that test_result's tuids at line 41 is different from
     # result 2.
     entered = False
@@ -880,9 +822,7 @@ def test_threaded_service_call(service):
         "/toolkit/components/reader/test/browser_readerMode_with_anchor.js",
     ]
 
-    res, completed = service.get_tuids_from_files(
-        test_file, mc_revision, going_forward=True
-    )
+    res, completed = service.get_tuids_from_files(test_file, mc_revision, going_forward=True)
     assert not completed
     assert all([len(tuids) == 0 for file, tuids in res])
 
@@ -891,9 +831,7 @@ def test_threaded_service_call(service):
         Till(seconds=timeout_seconds).wait()
 
         # Try getting them again
-        res, completed = service.get_tuids_from_files(
-            test_file, mc_revision, going_forward=True
-        )
+        res, completed = service.get_tuids_from_files(test_file, mc_revision, going_forward=True)
 
     assert completed
     assert all([len(tuids) > 0 for file, tuids in res])
@@ -911,11 +849,7 @@ def test_try_rev_then_mc(service):
     assert len(res1[0][1]) == 0
 
     res2, _ = service.get_tuids_from_files(
-        test_file,
-        mc_revision,
-        repo="mozilla-central",
-        going_forward=True,
-        use_thread=False,
+        test_file, mc_revision, repo="mozilla-central", going_forward=True, use_thread=False
     )
     assert len(res2[0][1]) == file_length
 
@@ -957,10 +891,7 @@ def test_merged_changes(service):
 
                     # No tuids from the new should be in the old
                     # so this intersection should always be empty.
-                    assert (
-                        len(set(new_file_tuids) & set([t.tuid for t in old_file_tuids]))
-                        <= 0
-                    )
+                    assert len(set(new_file_tuids) & set([t.tuid for t in old_file_tuids])) <= 0
                     completed += 1
 
                     break
@@ -1043,10 +974,7 @@ def test_very_distant_files(service):
 
                     # No tuids from the new should be in the old
                     # so this intersection should always be empty.
-                    assert (
-                        len(set(new_file_tuids) & set([t.tuid for t in old_file_tuids]))
-                        <= 0
-                    )
+                    assert len(set(new_file_tuids) & set([t.tuid for t in old_file_tuids])) <= 0
                     completed += 1
 
                     break
