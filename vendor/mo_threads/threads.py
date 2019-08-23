@@ -11,19 +11,17 @@
 # THIS SIGNAL IS IMPORTANT FOR PROPER SIGNALLING WHICH ALLOWS
 # FOR FAST AND PREDICTABLE SHUTDOWN AND CLEANUP OF THREADS
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
-import signal as _signal
-import sys
 from copy import copy
 from datetime import datetime, timedelta
+import signal as _signal
+import sys
 from time import sleep
 
-from mo_dots import Data, unwraplist
-from mo_future import get_ident, start_new_thread, get_function_name, text_type, allocate_lock
-from mo_logs import Log, Except
+from mo_dots import Data, coalesce, unwraplist
+from mo_future import allocate_lock, get_function_name, get_ident, start_new_thread, text_type, decorate
+from mo_logs import Except, Log
 from mo_threads.lock import Lock
 from mo_threads.profiles import CProfiler, write_profiles
 from mo_threads.signal import AndSignals, Signal
@@ -31,6 +29,8 @@ from mo_threads.till import Till
 
 DEBUG = False
 
+PLEASE_STOP = str("please_stop")  # REQUIRED thread PARAMETER TO SIGNAL STOP
+PARENT_THREAD = str("parent_thread")  # OPTIONAL PARAMETER TO ASSIGN THREAD TO SOMETHING OTHER THAN CURRENT THREAD
 MAX_DATETIME = datetime(2286, 11, 20, 17, 46, 39)
 DEFAULT_WAIT_TIME = timedelta(minutes=10)
 THREAD_STOP = "stop"
@@ -102,13 +102,13 @@ class MainThread(BaseThread):
         BaseThread.__init__(self, get_ident())
         self.name = "Main Thread"
         self.please_stop = Signal()
+        self.stopped = Signal()
         self.stop_logging = Log.stop
         self.timers = None
 
     def stop(self):
         """
-        BLOCKS UNTIL ALL THREADS HAVE STOPPED
-        THEN RUNS sys.exit(0)
+        BLOCKS UNTIL ALL KNOWN THREADS, EXCEPT MainThread, HAVE STOPPED
         """
         global DEBUG
 
@@ -147,7 +147,7 @@ class MainThread(BaseThread):
 
         write_profiles(self.cprofiler)
         DEBUG and Log.note("Thread {{name|quote}} now stopped", name=self.name)
-        sys.exit(0)
+        self.stopped.go()
 
     def wait_for_shutdown_signal(
         self,
@@ -170,9 +170,9 @@ class MainThread(BaseThread):
             Log.error("Only the main thread can sleep forever (waiting for KeyboardInterrupt)")
 
         if isinstance(please_stop, Signal):
-            # MUTUAL TRIGGERING, SO THEY ARE EFFECTIVELY THE SAME
-            self.please_stop.on_go(please_stop.go)
-            please_stop.on_go(self.please_stop.go)
+            # MUTUAL SIGNALING MAKES THESE TWO EFFECTIVELY THE SAME SIGNAL
+            self.please_stop.then(please_stop.go)
+            please_stop.then(self.please_stop.go)
         else:
             please_stop = self.please_stop
 
@@ -180,9 +180,10 @@ class MainThread(BaseThread):
             # TRIGGER SIGNAL WHEN ALL CHILDREN THEADS ARE DONE
             with self_thread.child_lock:
                 pending = copy(self_thread.children)
-            all = AndSignals(please_stop, len(pending))
+            children_done = AndSignals(please_stop, len(pending))
+            children_done.signal.then(self.please_stop.go)
             for p in pending:
-                p.stopped.on_go(all.done)
+                p.stopped.then(children_done.done)
 
         try:
             if allow_exit:
@@ -207,7 +208,7 @@ class Thread(BaseThread):
 
     def __init__(self, name, target, *args, **kwargs):
         BaseThread.__init__(self, -1)
-        self.name = name
+        self.name = coalesce(name, "thread_" + text_type(object.__hash__(self)))
         self.target = target
         self.end_of_thread = Data()
         self.synch_lock = Lock("response synch lock")
@@ -215,15 +216,15 @@ class Thread(BaseThread):
 
         # ENSURE THERE IS A SHARED please_stop SIGNAL
         self.kwargs = copy(kwargs)
-        self.kwargs["please_stop"] = self.kwargs.get("please_stop", Signal("please_stop for " + self.name))
-        self.please_stop = self.kwargs["please_stop"]
+        self.kwargs[PLEASE_STOP] = self.kwargs.get(PLEASE_STOP, Signal("please_stop for " + self.name))
+        self.please_stop = self.kwargs[PLEASE_STOP]
 
         self.thread = None
         self.stopped = Signal("stopped signal for " + self.name)
 
-        if "parent_thread" in kwargs:
-            del self.kwargs["parent_thread"]
-            self.parent = kwargs["parent_thread"]
+        if PARENT_THREAD in kwargs:
+            del self.kwargs[PARENT_THREAD]
+            self.parent = kwargs[PARENT_THREAD]
         else:
             self.parent = Thread.current()
             self.parent.add_child(self)
@@ -277,7 +278,7 @@ class Thread(BaseThread):
                 if emit_problem:
                     # THREAD FAILURES ARE A PROBLEM ONLY IF NO ONE WILL BE JOINING WITH IT
                     try:
-                        Log.fatal("Problem in thread {{name|quote}}", name=self.name, cause=e)
+                        Log.error("Problem in thread {{name|quote}}", name=self.name, cause=e)
                     except Exception:
                         sys.stderr.write(str("ERROR in thread: " + self.name + " " + text_type(e) + "\n"))
             finally:
@@ -332,14 +333,14 @@ class Thread(BaseThread):
             else:
                 Log.error("Thread {{name|quote}} did not end well", name=self.name, cause=self.end_of_thread.exception)
         else:
-            raise Except(type=THREAD_TIMEOUT)
+            raise Except(context=THREAD_TIMEOUT)
 
     @staticmethod
     def run(name, target, *args, **kwargs):
         # ENSURE target HAS please_stop ARGUMENT
         if get_function_name(target) == 'wrapper':
             pass  # GIVE THE override DECORATOR A PASS
-        elif "please_stop" not in target.__code__.co_varnames:
+        elif PLEASE_STOP not in target.__code__.co_varnames:
             Log.error("function must have please_stop argument for signalling emergency shutdown")
 
         Thread.num_threads += 1
@@ -355,12 +356,22 @@ class Thread(BaseThread):
             output = ALL.get(ident)
 
         if output is None:
+            thread = BaseThread(ident)
+            thread.cprofiler = CProfiler()
+            thread.cprofiler.__enter__()
+            with ALL_LOCK:
+                ALL[ident] = thread
             Log.warning("this thread is not known. Register this thread at earliest known entry point.")
-            return BaseThread(get_ident())
+            return thread
         return output
 
 
 class RegisterThread(object):
+    """
+    A context manager to handle threads spawned by other libs
+    This will ensure the thread has unregistered, or
+    has completed before MAIN_THREAD is shutdown
+    """
 
     def __init__(self, thread=None):
         if thread is None:
@@ -380,12 +391,24 @@ class RegisterThread(object):
             del ALL[self.thread.id]
 
 
+def register_thread(func):
+    """
+    Call `with RegisterThread():`
+    """
+
+    @decorate(func)
+    def output(*args, **kwargs):
+        with RegisterThread():
+            return func(*args, **kwargs)
+    return output
+
+
 def stop_main_thread(*args):
     """
     CLEAN OF ALL THREADS CREATED WITH THIS LIBRARY
     """
     try:
-        if len(args) and args[0]:
+        if len(args) and args[0] != _signal.SIGTERM:
             Log.warning("exit with {{value}}", value=_describe_exit_codes.get(args[0], args[0]))
     except Exception as _:
         pass
@@ -406,11 +429,16 @@ def _wait_for_exit(please_stop):
     """
     /dev/null PIPED TO sys.stdin SPEWS INFINITE LINES, DO NOT POLL AS OFTEN
     """
+    try:
+        import msvcrt
+        _wait_for_exit_on_windows(please_stop)
+    except:
+        pass
+
     cr_count = 0  # COUNT NUMBER OF BLANK LINES
 
     while not please_stop:
-        # if DEBUG:
-        #     Log.note("inside wait-for-shutdown loop")
+        # DEBUG and Log.note("inside wait-for-shutdown loop")
         if cr_count > 30:
             (Till(seconds=3) | please_stop).wait()
         try:
@@ -421,8 +449,7 @@ def _wait_for_exit(please_stop):
                 _wait_for_interrupt(please_stop)
                 break
 
-        # if DEBUG:
-        #     Log.note("read line {{line|quote}}, count={{count}}", line=line, count=cr_count)
+        # DEBUG and Log.note("read line {{line|quote}}, count={{count}}", line=line, count=cr_count)
         if line == "":
             cr_count += 1
         else:
@@ -431,6 +458,24 @@ def _wait_for_exit(please_stop):
         if line.strip() == "exit":
             Log.alert("'exit' Detected!  Stopping...")
             return
+
+
+def _wait_for_exit_on_windows(please_stop):
+    import msvcrt
+
+    line = ""
+    while not please_stop:
+        if msvcrt.kbhit():
+            chr = msvcrt.getche()
+            if ord(chr) == 13:
+                if line == "exit":
+                    Log.alert("'exit' Detected!  Stopping...")
+                    return
+            elif ord(chr) > 32:
+                line += chr
+        else:
+            sleep(1)
+
 
 
 def _wait_for_interrupt(please_stop):

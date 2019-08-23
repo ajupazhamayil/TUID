@@ -4,9 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 #
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
 import os
 
@@ -15,7 +13,7 @@ from flask import Flask, Response
 
 from mo_hg.cache import Cache
 from mo_json import value2json
-from mo_logs import Log, constants, startup, Except
+from mo_logs import Except, Log, constants, startup
 from mo_logs.strings import unicode2utf8
 from pyLibrary.env.flask_wrappers import cors_wrapper
 
@@ -23,7 +21,6 @@ APP_NAME = "HG Relay"
 
 
 class RelayApp(Flask):
-
     def run(self, *args, **kwargs):
         # ENSURE THE LOGGING IS CLEANED UP
         try:
@@ -49,9 +46,7 @@ def relay_get(path):
         return Response(
             unicode2utf8(value2json(e, pretty=True)),
             status=400,
-            headers={
-                "Content-Type": "text/html"
-            }
+            headers={"Content-Type": "text/html"},
         )
 
 
@@ -65,9 +60,7 @@ def relay_post(path):
         return Response(
             unicode2utf8(value2json(e, pretty=True)),
             status=400,
-            headers={
-                "Content-Type": "text/html"
-            }
+            headers={"Content-Type": "text/html"},
         )
 
 
@@ -75,10 +68,10 @@ def add(any_flask_app):
     global cache
 
     cache = Cache(config.cache)
-    any_flask_app.add_url_rule(str('/<path:path>'), None, relay_get, methods=[str('GET')])
-    any_flask_app.add_url_rule(str('/<path:path>'), None, relay_post, methods=[str('POST')])
-    any_flask_app.add_url_rule(str('/'), None, relay_get, methods=[str('GET')])
-    any_flask_app.add_url_rule(str('/'), None, relay_post, methods=[str('POST')])
+    any_flask_app.add_url_rule(str("/<path:path>"), None, relay_get, methods=[str("GET")])
+    any_flask_app.add_url_rule(str("/<path:path>"), None, relay_post, methods=[str("POST")])
+    any_flask_app.add_url_rule(str("/"), None, relay_get, methods=[str("GET")])
+    any_flask_app.add_url_rule(str("/"), None, relay_post, methods=[str("POST")])
 
 
 if __name__ in ("__main__",):
@@ -86,9 +79,7 @@ if __name__ in ("__main__",):
     flask_app = RelayApp(__name__)
 
     try:
-        config = startup.read_settings(
-            filename=os.environ.get('HG_RELAY_CONFIG')
-        )
+        config = startup.read_settings(filename=os.environ.get("HG_RELAY_CONFIG"))
         constants.set(config.constants)
         Log.start(config.debug)
 
@@ -96,7 +87,9 @@ if __name__ in ("__main__",):
         Log.note("Started " + APP_NAME + " Service")
     except BaseException as e:  # MUST CATCH BaseException BECAUSE argparse LIKES TO EXIT THAT WAY, AND gunicorn WILL NOT REPORT
         try:
-            Log.error("Serious problem with " + APP_NAME + " service construction!  Shutdown!", cause=e)
+            Log.error(
+                "Serious problem with " + APP_NAME + " service construction!  Shutdown!", cause=e
+            )
         finally:
             Log.stop()
 

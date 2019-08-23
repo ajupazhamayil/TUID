@@ -7,20 +7,16 @@
 # Author: Kyle Lahnakoski (kyle@lahnakoski.com)
 #
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import unicode_literals
+from __future__ import absolute_import, division, unicode_literals
 
 from mo_dots import Data
 
 
 class Changeset(Data):
-
     def __hash__(self):
         return hash(self.id)
 
     def __eq__(self, other):
-        if other==None:
+        if other == None:
             return False
         return self.id == other.id
-
